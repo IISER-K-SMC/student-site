@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from tortoise import Tortoise
 
 from . import main
-from . import smc_db
 
 app = fastapi.FastAPI()
 
@@ -16,14 +15,6 @@ app.add_middleware(
 )
 app.include_router(main.router)
 
-
-@app.on_event("startup")
-def smc_db_startup():
-    smc_db.get_connection()
-
-@app.on_event("shutdown")
-def smc_db_shutdown():
-    smc_db.close_connection()
 
 @app.on_event("startup")
 async def db_startup():

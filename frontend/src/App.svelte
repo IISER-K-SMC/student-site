@@ -7,8 +7,15 @@
 <main class="container">
   <header class="headings">
   	<h1>SMC</h1>
-	<h3>Menu and Feedback section</h3>
+	<nav>
+  		<a href="https://docs.google.com/forms/d/e/1FAIpQLSfRkplSmeklsEd8QWFpTFY3DTeuVpwUu-42SVYJtPsAgGmVvQ/viewform"
+  	 	  target="_blank">Recharge form</a>
+	</nav>
   </header>
+	<hr>
+	<h3>Menu and Feedback section</h3>
+
+ 
 
 
   <details open>
@@ -16,10 +23,7 @@
 	  <MenuItems/>
   </details>
 
-  <details open>
-  <summary><b>Feedback</b></summary>
-	  <Feedback/>
-  </details>
+  <Feedback/>
 
 </main>
 
@@ -27,4 +31,9 @@
 header {
 	padding-top: 1em;
 }
+:global(html) {
+  scroll-behavior: smooth;
+}
 </style>
+
+

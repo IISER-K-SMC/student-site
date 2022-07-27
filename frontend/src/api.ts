@@ -1,6 +1,3 @@
-
-export const API_URL = "http://localhost:8000/";
-
 export async function getMenu(): Promise<MenuItem[]>  {
 	const res = await fetch(API_URL + 'menu/');
 	if (res.status !== 200) {
@@ -18,6 +15,7 @@ export interface MenuItem {
 
 export interface FeedbackData {
 	product_id: number;
+	product_name: string;
 	stars: number;
 	feedback: string;
 	username: string;

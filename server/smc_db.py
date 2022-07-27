@@ -1,11 +1,15 @@
 # curd actions related to newsmerpdb
+# TODO convert to aiomysql
 import asyncio
+
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 import mysql.connector
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
+from contextlib import contextmanager
 import os
 
 SMC_DB_PASSWD = os.getenv('SMC_DB_PASSWD')
@@ -26,18 +30,20 @@ class FoodItem:
     special: bool
 
 
-con = None
-def get_connection() -> MySQLConnection:
-    global con
-    if con is None:
-        print("Making DB connection")
-        con = mysql.connector.connect(
-                user='canteenadmin',
-                password=SMC_DB_PASSWD,
-                host='10.0.0.139',
-                database='django',
-                ssl_disabled=True)
-    return con
+
+@contextmanager
+def get_connection():
+    con = mysql.connector.connect(
+            user='canteenadmin',
+            password=SMC_DB_PASSWD,
+            host='10.0.0.139',
+            database='django',
+            ssl_disabled=True)
+    try:
+        yield con
+    finally:
+        con.close()
+
 
 # {'id': 253, 'attimeof_id': 3, 'product_id': 253, 'image':
         # 'Amul Butter .jpg', 'pname': 'Amul Butter ',
@@ -46,7 +52,16 @@ def get_connection() -> MySQLConnection:
 
 async def get_menu() -> list[FoodItem]:
     # TODO implement caching
-    raw_menu_list = await asyncio.get_event_loop().run_in_executor(None,_get_menu)
+    try:
+        raw_menu_list = await asyncio.wait_for(
+                    asyncio.get_event_loop().run_in_executor(None,_get_menu),
+                    1
+                )
+    except asyncio.TimeoutError:
+        global con
+        con = None
+        return []
+        
 
     menu_items: list[FoodItem] = []
     for raw_item in raw_menu_list:
@@ -58,6 +73,15 @@ async def get_menu() -> list[FoodItem]:
         menu_items.append(item)
 
     return menu_items
+
+
+async def get_pname(product_id: int) -> str:
+    if product_id == 0:
+        return "Overall"
+    product_name = await asyncio.get_event_loop().run_in_executor(None,_get_pname, product_id)
+    if product_name:
+        return product_name 
+    return "Failed to get Name"
 
 MENU_QUERY = """
 SELECT
@@ -73,19 +97,36 @@ ORDER BY
 """
 
 def _get_menu() -> list[dict]:
-    con = get_connection()
-    cursor: MySQLCursor = con.cursor(dictionary=True)
-    try:
-        with cursor:
-            cursor.execute(MENU_QUERY)
-            return cursor.fetchall()
-    except:
-        # If error then reopen connection from next time
-        con = None
-        return []
+    with get_connection() as con:
+        cursor: MySQLCursor = con.cursor(dictionary=True)
+        try:
+            with cursor:
+                cursor.execute(MENU_QUERY)
+                return cursor.fetchall()
+        except:
+            # If error then reopen connection from next time
+            con = None
+            return []
 
 
-def close_connection() -> None:
-    global con
-    if con is not None:
-        con.close()
+def _get_pname(product_id: int) -> Optional[str]:
+    with get_connection() as con:
+        cursor: MySQLCursor = con.cursor()
+        try:
+            with cursor:
+                cursor.execute("""
+                        SELECT
+                          pname
+                        FROM
+                          canteen_product
+                        WHERE
+                          id = %s
+                        LIMIT 1
+                        """, (product_id,))
+                db_data = cursor.fetchone()
+                if db_data:
+                    return db_data[0]
+                else:
+                    return None
+        except:
+            return None

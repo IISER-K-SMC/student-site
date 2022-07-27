@@ -1,3 +1,4 @@
 loadenv.sh
-*.sqlite3
+runner.sh
+*.sqlite3*
 venv/

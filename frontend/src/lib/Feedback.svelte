@@ -10,24 +10,36 @@
 	let feedbackPromise: Promise<void>;
 
 	async function sumbitForm() {
-		const product_id = $ratingDetails.product_id
+		const product_id = $ratingDetails.product_id;
+		const product_name = $ratingDetails.name;
 		await sendFeedback({
 			product_id,
+			product_name,
 			stars: formStars,
 			feedback: formFeedback,
 			username: formUsername,
-		})
-		formFeedback = ''
+		});
+		formFeedback = '';
+		formStars = 5;
 	}
+
+	ratingDetails.subscribe(()=>{
+		feedbackPromise = undefined;
+	})
 </script>
 
+	<!-- OVERALL FEEDBACK PROMPT -->
+	{#if $ratingDetails.product_id !== 0}
+		<a href="..." on:click|preventDefault={()=>{
+			ratingDetails.set({
+				product_id: 0,
+				name: "Overall"
+			});
+		}}>Give overall feedback instead</a>
+	{/if}
 
-{#if $ratingDetails.product_id !== 0}
-	<button on:click={()=>{
-		$ratingDetails.product_id = 0;
-		$ratingDetails.name = "Overall";
-	}}>Rate General</button>
-{/if}
+
+
 
 <form id="rating-form"
  on:submit|preventDefault={()=>{
@@ -36,12 +48,12 @@
 
   <!-- Grid -->
   <div class="grid">
-  	<h4>Rating {$ratingDetails.name}</h4>
+  	<h1>Feedback for <b>{$ratingDetails.name}</b></h1>
 
     <label>
 	  Name or Rollnumber
       <input type="text" placeholder="Name or Rollnumber"
-	   bind:value={formUsername} required>
+	   bind:value={formUsername} minlength="3" required>
     </label>
 
     <label>
@@ -52,7 +64,7 @@
     <label>
 	  Feedback
 	  <textarea rows="4" cols="50" bind:value={formFeedback}
-	   placeholder="Enter your feedback here"></textarea>
+	   placeholder="Enter your feedback here" required></textarea>
     </label>
 
   </div>
@@ -70,3 +82,4 @@
 
   <button type="submit">Submit</button>
 </form>
+

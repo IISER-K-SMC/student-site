@@ -7,7 +7,7 @@
 </script>
 
 <details>
-<summary role="button"class="secondary">{mealName}</summary>
+<summary role="button" class="secondary">{mealName}</summary>
 <table>
 	<tbody>
 		{#each menuItems as item}
@@ -41,7 +41,7 @@
 <style>
 .rate-button {
 	cursor: pointer;
-	max-height: 3em;
+	max-height: 4em;
 	background: rgba(255, 122, 89, .3);
 	border-radius: 10%;
 	text-align: center;
