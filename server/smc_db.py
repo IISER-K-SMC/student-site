@@ -1,3 +1,4 @@
+# DEPRECATED NOT USED
 # curd actions related to newsmerpdb
 # TODO convert to aiomysql
 import asyncio

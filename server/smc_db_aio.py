@@ -11,6 +11,7 @@ import datetime
 from aiomysql.connection import asyncio
 
 SMC_DB_PASSWD = os.getenv('SMC_DB_PASSWD')
+
 if SMC_DB_PASSWD is None:
     raise LookupError("SMC_DB_PASSWD env not set")
 
