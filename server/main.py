@@ -1,10 +1,14 @@
-from fastapi.routing import APIRouter
 from datetime import datetime, timedelta
-from pydantic.dataclasses import dataclass
 from typing import Optional
-import asyncio
-from .smc_db import get_menu, get_pname
+
+from fastapi import Depends
+from fastapi.routing import APIRouter
+from .security import get_current_user
+from pydantic.dataclasses import dataclass
+
 from .models import FeedBack
+from . import smc_db_aio
+
 
 router = APIRouter()
 
@@ -14,7 +18,6 @@ class FeedbackData:
     product_name: str
     stars: int
     feedback: str
-    username: str
 
 @dataclass
 class MenuItem:
@@ -29,25 +32,33 @@ async def root():
     return {"message": "SMC cybercell api"}
 
 
-@router.get("/menu/", response_model=list[MenuItem])
+@router.get("/menu", response_model=list[MenuItem])
 async def menu():
-    menu_items = await get_menu()
+    menu_items = await smc_db_aio.get_menu()
     return menu_items
 
 
-@router.post("/feedback/")
-async def submit_feedback(data: FeedbackData) -> dict:
+@router.post("/feedback")
+async def submit_feedback(
+        data: FeedbackData,
+        uid = Depends(get_current_user)) -> dict:
     await FeedBack.create(
             product_id=data.product_id,
             product_name=data.product_name,
             stars=data.stars,
-            username=data.username,
+            uid=uid,
             feedback=data.feedback)
     return {"success": "Feedback has been submitted"}
 
+@router.get("/orders")
+async def orders(uid = Depends(get_current_user)):
+    return await smc_db_aio.get_past_orders(uid)
 
-@router.get("/get-feedback/")
-async def show_feedbacks(after: Optional[datetime] = None, before: Optional[datetime] = None):
+
+@router.get("/get-feedback")
+async def show_feedbacks(after: Optional[datetime] = None,
+                        before: Optional[datetime] = None,
+                        ):
     """
     date range if provided: ISO 8601
     """
