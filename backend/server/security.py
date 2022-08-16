@@ -5,11 +5,14 @@ from pydantic.dataclasses import dataclass
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, APIRouter, HTTPException, status
 from . import smc_db_aio
+import os
 
 MOCK_USER = {
-    "hsa18ms082": "1234",
+    "abc12ms123": "password",
     "raj": "abc",
 }
+MOCK_USER_EMAIL = os.getenv("SMC_USER")
+
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -49,7 +52,7 @@ async def token(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    uid, balance = await smc_db_aio.get_user_details('hsa18ms082@iiserkol.ac.in')
+    uid, balance = await smc_db_aio.get_user_details(MOCK_USER_EMAIL)
 
     sec = await Security.create(
             token=generate_token(),

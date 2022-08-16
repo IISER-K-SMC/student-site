@@ -1,4 +1,12 @@
-# Svelte + TS + Vite
+# Frontend
+
+
+You can read the below for details about the template being used.
+
+
+
+
+## Svelte + TS + Vite
 
 This template should help get you started developing with Svelte and TypeScript in Vite.
 
